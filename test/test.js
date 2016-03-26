@@ -48,7 +48,7 @@ describe('sails-jwt', function() {
         assert.equal(err.message, 'Secret is missing');
 
         done();
-      });
+      })(req);
     });
 
     it('should return Error if NO authorization header is present', function(done) {

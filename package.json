@@ -1,6 +1,6 @@
 {
   "name": "jwt-policy",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "JSON Web Token middleware friendly with Express and Sails.js",
   "main": "./lib/index.js",
   "dependencies": {

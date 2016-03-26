@@ -1,2 +1,3 @@
-# sails-jwt
-JSON Web Token Policy for Sails.js
+# node-jwt-policy
+
+JSON Web Token middleware friendly with Express and Sails.js

@@ -1,0 +1,36 @@
+{
+  "name": "jwt-policy",
+  "version": "0.1.0",
+  "description": "JSON Web Token middleware friendly with Express and Sails.js",
+  "main": "./lib/index.js",
+  "dependencies": {
+    "jsonwebtoken": "~5.7.0"
+  },
+  "devDependencies": {
+    "mocha": "~2.4.5"
+  },
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshuamarquez/node-jwt-policy.git"
+  },
+  "keywords": [
+    "jwt",
+    "sails",
+    "middleware",
+    "policy",
+    "jsonwebtoken",
+    "express"
+  ],
+  "author": "Joshua Marquez <joshua.marquezn@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/joshuamarquez/node-jwt-policy/issues"
+  },
+  "homepage": "https://github.com/joshuamarquez/node-jwt-policy#readme"
+}

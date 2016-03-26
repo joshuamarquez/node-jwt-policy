@@ -12,7 +12,25 @@ $ npm install jwt-policy --save
 
 ## Usage
 
-### Sails.js
+### jwtPolicy(options, [callback])
+
+`options`:
+
+* `secret`: is a string containing the secret for decoding token.
+
+Specify callback if you wish to do something with `req.user` or check for possible errors, if callback is not supplied then default behavior will take effect.
+
+### Usage in Sails.js
+
+Default behavior
+
+```javascript
+// Will return with 401 HTTP status code if any errors occurred.
+// policies/jwtAuth.js
+module.exports = require('jwt-policy')({ secret: 'my_secret_key' });
+```
+
+Override default behavior
 
 ```javascript
 // policies/jwtAuth.js
@@ -21,7 +39,7 @@ module.exports = require('jwt-policy')({
 }, function(err, req, res, next) {
   if (!err) {
     // user can be found at 'req.user'
-  
+
     return next();
   }
 

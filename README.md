@@ -25,7 +25,7 @@ Specify callback if you wish to do something with `req.user` or check for possib
 Default behavior
 
 ```javascript
-// Will return with 401 HTTP status code if any errors occurred.
+// Will return 401 HTTP status code if any errors occurred.
 // policies/jwtAuth.js
 module.exports = require('jwt-policy')({ secret: 'my_secret_key' });
 ```

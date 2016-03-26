@@ -47,6 +47,38 @@ module.exports = require('jwt-policy')({
 });
 ```
 
+### Usage in Express
+
+Default behavior
+
+```javascript
+const jwtPolicy = require('jwt-policy');
+
+app.use(jwtPolicy({ secret: 'my_secret_key' }));
+
+app.get('/', function(req, res) {
+  res.send(req.user);
+});
+```
+
+Override default behavior
+
+```javascript
+const jwtPolicy = require('jwt-policy');
+
+app.use(jwtPolicy({ secret: 'my_secret_key' }, function(err, req, res, next) {
+  if (!err) {
+    return res.next();
+  }
+
+  return res.status(401).json(err);
+}));
+
+app.get('/', function(req, res) {
+  res.send(req.user);
+});
+```
+
 ## Test
 
 ```

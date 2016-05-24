@@ -83,15 +83,20 @@ app.get('/', function(req, res) {
 
 ## Error handling
 
-### JWTError
-
 Possible thrown errors
+
+### TokenExtractorError
 
 | message                                         | code                                 |
 | ----------------------------------------------- |:------------------------------------:|
 | No Authorization header is present              | `E_AUTHORIZATION_REQUIRED`           |
-| Format is :: Authorization: Bearer <token>      | `E_INVALID_AUTHORIZATION_FORMAT`     |
+| Format is :: Authorization: Bearer <token>      | `E_AUTHORIZATION_INVALID_FORMAT`     |
 | Authorization token was not found               | `E_AUTHORIZATION_TOKEN_NOT_FOUND`    |
+
+### JWTError
+
+| message                                         | code                                 |
+| ----------------------------------------------- |:------------------------------------:|
 | JSON Web Token provided has expired             | `E_TOKEN_EXPIRED`                    |
 | Invalid JSON Web Token provided                 | `E_TOKEN_INVALID`                    |
 
@@ -108,12 +113,12 @@ app.use(jwtPolicy({ secret: 'my_secret_key' }, function(err, req, res, next) {
         code: 'E_TOKEN_EXPIRED'
       }
     */
-    
+
     console.log(err.toString());
     /*
       [JWTError (E_TOKEN_EXPIRED) JSON Web Token provided has expired]
     */
-    
+
     console.trace(err);
     /*
       prints Error Stack since err instanceof Error

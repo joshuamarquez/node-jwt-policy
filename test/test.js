@@ -106,7 +106,7 @@ describe('sails-jwt', function() {
         authorization: 'Bearer' + token
       };
 
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_INVALID_AUTHORIZATION_FORMAT'));
+      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_AUTHORIZATION_INVALID_FORMAT'));
     });
 
     it('should return Error if authorization header format is invalid (callback provided)', function(done) {
@@ -120,7 +120,7 @@ describe('sails-jwt', function() {
         secret: secretKey
       }, function(err) {
         assert.ok(err);
-        assert.equal(err.code, 'E_INVALID_AUTHORIZATION_FORMAT');
+        assert.equal(err.code, 'E_AUTHORIZATION_INVALID_FORMAT');
 
         done();
       })(req);

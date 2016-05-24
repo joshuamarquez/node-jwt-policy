@@ -21,10 +21,13 @@ $ npm install jwt-policy --save
 `options` :
 
 * `secret` : is a string containing the secret for decoding token.
+* `extractToken` : function to extract token instead of default (HTTP Authorization Header).
 
 **Note: You can pass all available options for [`jwt.verify`](https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback) such as `audience`, `issuer`, etc.**
 
 Specify callback if you wish to do something with `req.user` or check for possible errors, if callback is not supplied then default behavior will take effect.
+
+For default `jwt-policy` extracts token using [extractor-token](https://github.com/joshuamarquez/node-token-extractor/) (HTTP Authorization Header) but in case you are passing the token by any other method you can use `extractToken` option.
 
 ### Usage in Sails.js
 
@@ -50,6 +53,18 @@ module.exports = require('jwt-policy')({
   }
 
   return res.status(401).json(err);
+});
+```
+
+Override the way the token is extracted using `extractToken` option.
+
+```javascript
+// policies/jwtAuth.js
+module.exports = require('jwt-policy')({
+  secret: 'my_secret_key',
+  extractToken: function(req) {
+    return req.param('token');
+  }
 });
 ```
 
@@ -81,6 +96,17 @@ app.use(jwtPolicy({ secret: 'my_secret_key' }, function(err, req, res, next) {
 app.get('/', function(req, res) {
   res.send(req.user);
 });
+```
+
+Override the way the token is extracted using `extractToken` option.
+
+```javascript
+app.use(jwtPolicy({
+  secret: 'my_secret_key',
+  extractToken: function(req) {
+    return req.query.token;
+  }
+}));
 ```
 
 ## Error handling

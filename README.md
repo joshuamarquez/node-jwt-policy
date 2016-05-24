@@ -18,9 +18,11 @@ $ npm install jwt-policy --save
 
 ### jwtPolicy(options, [callback])
 
-`options`:
+`options` :
 
-* `secret`: is a string containing the secret for decoding token.
+* `secret` : is a string containing the secret for decoding token.
+
+**Note: You can pass all available options for [`jwt.verify`](https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback) such as `audience`, `issuer`, etc.**
 
 Specify callback if you wish to do something with `req.user` or check for possible errors, if callback is not supplied then default behavior will take effect.
 

@@ -1,8 +1,8 @@
 # jwt-policy
 
-JSON Web Token middleware friendly with Express and Sails.js
-
 [![npm version](https://badge.fury.io/js/jwt-policy.svg)](https://badge.fury.io/js/jwt-policy)
+
+JSON Web Token middleware friendly with Express and Sails.js
 
 Validates `token` from HTTP request header authorization and sets `req.user`, token is expected to be found at `Authorization: Bearer <token>`.
 

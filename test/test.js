@@ -2,14 +2,22 @@
 
 const assert = require('assert');
 const jwt = require('jsonwebtoken');
+const _ = require('lodash');
 const jwtPolicy = require('../lib/index');
 
 describe('sails-jwt', function() {
+  const secretKey = 'shhhh!';
   const user = {
     id: 1,
     name: 'somename',
     role: 'SOME_ROLE'
   };
+
+  function assertUser(token, expected, callback) {
+    assert.deepEqual(_.pick(jwt.decode(token), _.keys(user)),
+                      _.pick(expected, _.keys(user)));
+    callback();
+  }
 
   function getRes(done, codeExpected) {
     return {
@@ -27,8 +35,6 @@ describe('sails-jwt', function() {
   }
 
   describe('Work tests', function() {
-
-    const secretKey = 'shhhh!';
     const req = {};
 
     it('should set "req.user" correctly', function(done) {
@@ -39,9 +45,24 @@ describe('sails-jwt', function() {
       };
 
       jwtPolicy({ secret: secretKey })(req, null, function() {
-        assert.ok(req.user);
+        assertUser(token, req.user, done);
+      });
+    });
 
-        done();
+    it('should set "req.user" correctly with extractToken()', function(done) {
+      let token = jwt.sign(user, secretKey);
+
+      req.query = {
+        token: token
+      };
+
+      jwtPolicy({
+        secret: secretKey,
+        extractToken: function(req) {
+          return req.query.token;
+        }
+      })(req, null, function() {
+        assertUser(token, req.user, done);
       });
     });
 
@@ -56,15 +77,30 @@ describe('sails-jwt', function() {
         secret: secretKey
       }, function(err, req, res, next) {
         assert.ifError(err);
-        assert.equal(user.id, req.user.id);
+        assertUser(token, req.user, done);
+      })(req);
+    });
 
-        done();
+    it('should set "req.user" correctly with extractToken() (callback provided)', function(done) {
+      let token = jwt.sign(user, secretKey);
+
+      req.query = {
+        token: token
+      };
+
+      jwtPolicy({
+        secret: secretKey,
+        extractToken: function(req) {
+          return req.query.token;
+        }
+      }, function(err, req, res, next) {
+        assert.ifError(err);
+        assertUser(token, req.user, done);
       })(req);
     });
   });
 
   describe('Failure tests', function() {
-    const secretKey = 'shhhh!';
     const req = {};
 
     it('should throw if second argument is not a function', function() {
@@ -80,131 +116,102 @@ describe('sails-jwt', function() {
       assert.throws(jwtPolicy, /Secret is missing/);
     });
 
-    it('should return Error if NO authorization header is present', function(done) {
-      req.headers = {};
-
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_AUTHORIZATION_REQUIRED'));
-    });
-
-    it('should return Error if NO authorization header is present (callback provided)', function(done) {
-      req.headers = {};
-
-      jwtPolicy({
-        secret: secretKey
-      }, function(err) {
-        assert.ok(err);
-        assert.equal(err.code, 'E_AUTHORIZATION_REQUIRED');
-
-        done();
-      })(req);
-    });
-
-    it('should return Error if authorization header format is invalid', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.headers = {
-        authorization: 'Bearer' + token
-      };
-
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_AUTHORIZATION_INVALID_FORMAT'));
-    });
-
-    it('should return Error if authorization header format is invalid (callback provided)', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.headers = {
-        authorization: 'Bearer' + token
-      };
-
-      jwtPolicy({
-        secret: secretKey
-      }, function(err) {
-        assert.ok(err);
-        assert.equal(err.code, 'E_AUTHORIZATION_INVALID_FORMAT');
-
-        done();
-      })(req);
-    });
-
-    it('should return Error if token is not present in authorization header', function(done) {
-      req.headers = {
-        authorization: 'Bearer '
-      };
-
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_AUTHORIZATION_TOKEN_NOT_FOUND'));
-    });
-
-    it('should return Error if token is not present in authorization header (callback provided)', function(done) {
-      req.headers = {
-        authorization: 'Bearer '
-      };
-
-      jwtPolicy({
-        secret: secretKey
-      }, function(err) {
-        assert.ok(err);
-        assert.equal(err.code, 'E_AUTHORIZATION_TOKEN_NOT_FOUND');
-
-        done();
-      })(req);
-    });
-
-    it('should return Error if token has expired', function(done) {
+    describe('Token Expired Error (E_TOKEN_EXPIRED)', function() {
       // Generate token expired
       let token = jwt.sign(user, secretKey, { expiresIn: 0 });
 
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
+      it('should return E_TOKEN_EXPIRED', function(done) {
+        req.headers = { authorization: 'Bearer ' + token };
 
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_EXPIRED'));
+        jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_EXPIRED'));
+      });
+
+      it('should return E_TOKEN_EXPIRED with extractToken()', function(done) {
+        req.query = { token: token };
+
+        jwtPolicy({
+          secret: secretKey,
+          extractToken: function(req) {
+            return req.query.token;
+          }
+        })(req, getRes(done, 'E_TOKEN_EXPIRED'));
+      });
+
+      it('should return E_TOKEN_EXPIRED (callback provided)', function(done) {
+        req.headers = { authorization: 'Bearer ' + token };
+
+        jwtPolicy({
+          secret: secretKey
+        }, function(err) {
+          assert.ok(err);
+          assert.equal(err.code, 'E_TOKEN_EXPIRED');
+
+          done();
+        })(req);
+      });
+
+      it('should return E_TOKEN_EXPIRED with extractToken() (callback provided)', function(done) {
+        req.query = { token: token };
+
+        jwtPolicy({
+          secret: secretKey,
+          extractToken: function(req) {
+            return req.query.token;
+          }
+        }, function(err) {
+          assert.ok(err);
+          assert.equal(err.code, 'E_TOKEN_EXPIRED');
+
+          done();
+        })(req);
+      });
     });
 
-    it('should return Error if token has expired (callback provided)', function(done) {
-      // Generate token expired
-      let token = jwt.sign(user, secretKey, { expiresIn: 0 });
-
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
-
-      jwtPolicy({
-        secret: secretKey
-      }, function(err) {
-        assert.ok(err);
-        assert.equal(err.code, 'E_TOKEN_EXPIRED');
-
-        done();
-      })(req);
-    });
-
-    it('should return Error if token is invalid', function(done) {
-      // Generate token expired
+    describe('Token Invalid Error (E_TOKEN_INVALID)', function() {
       let token = 'invalid_token';
 
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
+      it('should return E_TOKEN_INVALID', function(done) {
+        req.headers = { authorization: 'Bearer ' + token };
 
-      jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_INVALID'));
-    });
+        jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_INVALID'));
+      });
 
-    it('should return Error if token is invalid (callback provided)', function(done) {
-      // Generate token expired
-      let token = 'invalid_token';
+      it('should return E_TOKEN_INVALID with extractToken()', function(done) {
+        req.query = { token: token };
 
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
+        jwtPolicy({
+          secret: secretKey,
+          extractToken: function(req) {
+            return req.query.token;
+          }
+        })(req, getRes(done, 'E_TOKEN_INVALID'));
+      });
 
-      jwtPolicy({
-        secret: secretKey
-      }, function(err) {
-        assert.ok(err);
-        assert.equal(err.code, 'E_TOKEN_INVALID');
+      it('should return E_TOKEN_INVALID (callback provided)', function(done) {
+        req.headers = { authorization: 'Bearer ' + token };
 
-        done();
-      })(req);
+        jwtPolicy({
+          secret: secretKey
+        }, function(err) {
+          assert.ok(err);
+          assert.equal(err.code, 'E_TOKEN_INVALID');
+
+          done();
+        })(req);
+      });
+
+      it('should return E_TOKEN_INVALID with extractToken() (callback provided)', function(done) {
+        req.query = { token: token };
+
+        jwtPolicy({
+          secret: secretKey
+        }, function(err) {
+          assert.ok(err);
+          assert.equal(err.code, 'E_TOKEN_INVALID');
+
+          done();
+        })(req);
+      });
     });
   });
 });

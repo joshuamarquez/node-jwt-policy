@@ -8,6 +8,7 @@
     "token-extractor": "~0.1.5"
   },
   "devDependencies": {
+    "lodash": "~4.13.1",
     "mocha": "~2.4.5"
   },
   "engines": {

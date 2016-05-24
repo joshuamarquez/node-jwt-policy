@@ -36,10 +36,9 @@ describe('sails-jwt', function() {
 
   describe('Work tests', function() {
     const req = {};
+    const token = jwt.sign(user, secretKey);
 
     it('should set "req.user" correctly', function(done) {
-      let token = jwt.sign(user, secretKey);
-
       req.headers = {
         authorization: 'Bearer ' + token
       };
@@ -50,8 +49,6 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly with extractToken()', function(done) {
-      let token = jwt.sign(user, secretKey);
-
       req.query = {
         token: token
       };
@@ -67,8 +64,6 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly (callback provided)', function(done) {
-      let token = jwt.sign(user, secretKey);
-
       req.headers = {
         authorization: 'Bearer ' + token
       };
@@ -82,8 +77,6 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly with extractToken() (callback provided)', function(done) {
-      let token = jwt.sign(user, secretKey);
-
       req.query = {
         token: token
       };

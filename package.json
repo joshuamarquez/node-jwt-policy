@@ -5,7 +5,7 @@
   "main": "./lib/index.js",
   "dependencies": {
     "jsonwebtoken": "~7.0.0",
-    "token-extractor": "~0.1.5"
+    "token-extractor": "~0.1.6"
   },
   "devDependencies": {
     "lodash": "~4.13.1",

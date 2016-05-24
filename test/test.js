@@ -26,7 +26,7 @@ describe('sails-jwt', function() {
     };
   }
 
-  describe('Passing tests', function() {
+  describe('Work tests', function() {
 
     const secretKey = 'shhhh!';
     const req = {};
@@ -63,7 +63,7 @@ describe('sails-jwt', function() {
     });
   });
 
-  describe('failing tests', function() {
+  describe('Failure tests', function() {
     const secretKey = 'shhhh!';
     const req = {};
 

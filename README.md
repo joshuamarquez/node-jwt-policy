@@ -6,7 +6,7 @@ JSON Web Token middleware friendly with Express and Sails.js
 
 Validates `token` from HTTP request header authorization and sets `req.user`, token is expected to be found at `Authorization: Bearer <token>`.
 
-This module verifies tokens with [node-jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
+This module verifies tokens generated with [node-jsonwebtoken](https://github.com/auth0/node-jsonwebtoken)
 
 ## Install
 
@@ -22,12 +22,13 @@ $ npm install jwt-policy --save
 
 * `secret` : is a string containing the secret for decoding token.
 * `extractToken` : function to extract token instead of default (HTTP Authorization Header).
+* `attachTo` : allows the user to override the default path where the decoded token will be attached to, default is `user`.
 
 **Note: You can pass all available options for [`jwt.verify`](https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback) such as `audience`, `issuer`, etc.**
 
 Specify callback if you wish to do something with `req.user` or check for possible errors, if callback is not supplied then default behavior will take effect.
 
-For default `jwt-policy` extracts token using [extractor-token](https://github.com/joshuamarquez/node-token-extractor/) (HTTP Authorization Header) but in case you are passing the token by any other method you can use `extractToken` option.
+For default, `jwt-policy` extracts token using [extractor-token](https://github.com/joshuamarquez/node-token-extractor/) (HTTP Authorization Header) but in case you are passing the token by any other method you can use `extractToken` option.
 
 ### Usage in Sails.js
 
@@ -107,6 +108,25 @@ app.use(jwtPolicy({
     return req.query.token;
   }
 }));
+```
+
+### Attach to
+
+`attachTo` option usage example:
+
+```javascript
+const jwtPolicy = require('jwt-policy');
+
+app.use(jwtPolicy({
+  secret: 'my_secret_key',
+  attachTo: 'auth'
+}));
+
+app.get('/', function(req, res) {
+  // decoded token can now 
+  // be found at `req.auth`
+  res.send(req.auth);
+});
 ```
 
 ## Error handling

@@ -34,15 +34,23 @@ describe('sails-jwt', function() {
     };
   }
 
+  function getReq(type, token) {
+    return type == 'header' ? {
+      headers: {
+        authorization: 'Bearer ' + token
+      }
+    } : {
+      query: {
+        token: token
+      }
+    };
+  }
+
   describe('Work tests', function() {
-    const req = {};
+    let token = jwt.sign(user, secretKey);
 
     it('should set "req.user" correctly', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
+      let req = getReq('header', token);
 
       jwtPolicy({ secret: secretKey })(req, null, function() {
         assertUser(token, req.user, done);
@@ -50,11 +58,7 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly with extractToken()', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.query = {
-        token: token
-      };
+      let req = getReq('query', token);
 
       jwtPolicy({
         secret: secretKey,
@@ -67,11 +71,7 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly (callback provided)', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.headers = {
-        authorization: 'Bearer ' + token
-      };
+      let req = getReq('header', token);
 
       jwtPolicy({
         secret: secretKey
@@ -82,11 +82,7 @@ describe('sails-jwt', function() {
     });
 
     it('should set "req.user" correctly with extractToken() (callback provided)', function(done) {
-      let token = jwt.sign(user, secretKey);
-
-      req.query = {
-        token: token
-      };
+      let req = getReq('query', token);
 
       jwtPolicy({
         secret: secretKey,
@@ -98,10 +94,22 @@ describe('sails-jwt', function() {
         assertUser(token, req.user, done);
       })(req);
     });
+
+    it('should override default attachTo path', function(done) {
+      let req = getReq('header', token);
+      let newPath = 'auth';
+
+      jwtPolicy({
+        secret: secretKey,
+        attachTo: newPath
+      })(req, null, function() {
+        assert.ok(req[newPath]);
+        assertUser(token, req[newPath], done);
+      });
+    });
   });
 
   describe('Failure tests', function() {
-    const req = {};
 
     it('should throw if second argument is not a function', function() {
       try {
@@ -116,18 +124,33 @@ describe('sails-jwt', function() {
       assert.throws(jwtPolicy, /Secret is missing/);
     });
 
+    it('should return default attachTo path as undefined', function(done) {
+      let req = getReq('query', jwt.sign(user, secretKey));
+
+      jwtPolicy({
+        secret: secretKey,
+        attachTo: 'auth',
+        extractToken: function(req) {
+          return req.query.token;
+        }
+      })(req, null, function() {
+        assert.ok(req.user === undefined);
+        done();
+      });
+    });
+
     describe('Token Expired Error (E_TOKEN_EXPIRED)', function() {
       // Generate token expired
       let token = jwt.sign(user, secretKey, { expiresIn: 0 });
 
       it('should return E_TOKEN_EXPIRED', function(done) {
-        req.headers = { authorization: 'Bearer ' + token };
+        let req = getReq('header', token);
 
         jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_EXPIRED'));
       });
 
       it('should return E_TOKEN_EXPIRED with extractToken()', function(done) {
-        req.query = { token: token };
+        let req = getReq('query', token);
 
         jwtPolicy({
           secret: secretKey,
@@ -138,7 +161,7 @@ describe('sails-jwt', function() {
       });
 
       it('should return E_TOKEN_EXPIRED (callback provided)', function(done) {
-        req.headers = { authorization: 'Bearer ' + token };
+        let req = getReq('header', token);
 
         jwtPolicy({
           secret: secretKey
@@ -151,7 +174,7 @@ describe('sails-jwt', function() {
       });
 
       it('should return E_TOKEN_EXPIRED with extractToken() (callback provided)', function(done) {
-        req.query = { token: token };
+        let req = getReq('query', token);
 
         jwtPolicy({
           secret: secretKey,
@@ -168,16 +191,16 @@ describe('sails-jwt', function() {
     });
 
     describe('Token Invalid Error (E_TOKEN_INVALID)', function() {
-      let token = 'invalid_token';
+      let token = new Buffer('invalid_token').toString('base64');
 
       it('should return E_TOKEN_INVALID', function(done) {
-        req.headers = { authorization: 'Bearer ' + token };
+        let req = getReq('header', token);
 
         jwtPolicy({ secret: secretKey })(req, getRes(done, 'E_TOKEN_INVALID'));
       });
 
       it('should return E_TOKEN_INVALID with extractToken()', function(done) {
-        req.query = { token: token };
+        let req = getReq('query', token);
 
         jwtPolicy({
           secret: secretKey,
@@ -188,7 +211,7 @@ describe('sails-jwt', function() {
       });
 
       it('should return E_TOKEN_INVALID (callback provided)', function(done) {
-        req.headers = { authorization: 'Bearer ' + token };
+        let req = getReq('header', token);
 
         jwtPolicy({
           secret: secretKey
@@ -201,10 +224,13 @@ describe('sails-jwt', function() {
       });
 
       it('should return E_TOKEN_INVALID with extractToken() (callback provided)', function(done) {
-        req.query = { token: token };
+        let req = getReq('query', token);
 
         jwtPolicy({
-          secret: secretKey
+          secret: secretKey,
+          extractToken: function(req) {
+            return req.query.token;
+          }
         }, function(err) {
           assert.ok(err);
           assert.equal(err.code, 'E_TOKEN_INVALID');
